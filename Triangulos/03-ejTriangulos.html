@@ -1,0 +1,283 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Ejemplo Triangulos</title>
+    <style>
+        body {
+            background-color: grey;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        canvas {
+            background-color: white;
+        }
+
+        textarea {
+            background-color: black;
+            background-color: white;
+        }
+
+        #titulo {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="titulo">
+
+        <h1>Sistemas Gráficos</h1>
+
+        <h2>WebGL Ejemplos Triangulos - Vertex Array Objects "VBOs"</h2>
+
+        <canvas id="my-canvas" width="1000" height="750">
+            Your browser does not support the HTML5 canvas element.
+        </canvas>
+
+    </div>
+
+    <!-- ************       vertex shader        ***************** !-->
+    <!-- Recibe la info de los vertices y colores y la van a manipular !-->
+    <!-- Por ahora solo pasa la info de vertices y colores  !-->
+
+    <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec3 aVertexColor;
+
+        varying highp vec4 vColor;
+
+        void main(void) {
+            gl_Position = vec4(aVertexPosition, 1.0);
+            vColor = vec4(aVertexColor, 1.0);
+        }
+    </script>
+
+    <!-- ************       fragment shader       **************** !-->
+    <!--  Pintar los pixeles en la pantalla (se pinta de forma interpolada)!-->
+    <!--  Version interpolada del vector en funcion de la distancia de un pixel a los vertices correspondientes!-->
+
+    <script id="shader-fs" type="x-shader/x-fragment">
+        varying highp vec4 vColor;
+        void main(void) {
+            gl_FragColor = vColor;
+        }
+    </script>
+
+    <script>
+
+        var gl = null,
+            canvas = null,
+            glProgram = null,
+            fragmentShader = null,
+            vertexShader = null;
+
+        var vertexPositionAttribute = null,
+            trianglesVerticeBuffer = null,
+            vertexColorAttribute = null,
+            trianglesColorBuffer = null;
+
+        function initWebGL() {
+
+            canvas = document.getElementById("my-canvas");
+            try {
+                gl = canvas.getContext("webgl");
+            } catch (e) {
+                alert("Error al obtener el contexto");
+            }
+
+            if (gl) {
+
+                setupWebGL();
+                initShaders(); //los shaders de arriba
+                setupBuffers();//donde cargamos la info 
+                drawScene();    //operaacion de dibujado
+
+            } else {
+                alert("Error: Su browser no soporta WebGL.");
+            }
+
+        }
+
+        function setupWebGL() {
+
+            //set the clear color
+            gl.clearColor(20 / 255, 0, 1, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            //dibujams en la totalidad del canvas
+
+        }
+
+        function initShaders() {
+            //shaders se ejecutan en GPU
+            //glsl lenguaje de shaders
+
+            //get shader source  -->obtenemos una referencia a los shaders
+            var fs_source = document.getElementById('shader-fs').innerHTML,
+                vs_source = document.getElementById('shader-vs').innerHTML;
+
+            //cada vez que se ejecuta se compile shaders    
+            vertexShader = makeShader(vs_source, gl.VERTEX_SHADER);
+
+            fragmentShader = makeShader(fs_source, gl.FRAGMENT_SHADER);
+
+            //create program
+            glProgram = gl.createProgram();
+
+            //attach and link shaders to the program
+            gl.attachShader(glProgram, vertexShader);
+            gl.attachShader(glProgram, fragmentShader);
+            gl.linkProgram(glProgram);
+
+            if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
+                alert("Unable to initialize the shader program.");
+            }
+
+            //use program --> le decimos a webgl que el programa activo
+            // --> en la gpu es este,(solo un programa a la vez) 
+            //esta listo para recibir datos
+            gl.useProgram(glProgram);
+
+        }
+
+        function makeShader(src, type) {
+
+            //compile the vertex shader
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, src);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert("Error compiling shader: " + gl.getShaderInfoLog(shader));
+            }
+            return shader;
+        }
+
+        function setupBuffers() { //la unidad fundamental es el triangulo
+            //x e y van de -1 a 1
+            //  BUFFER DE POSICIONES
+            var data = [
+
+                -0.7, -0.7, 0.0,    // vértice 1, triangulo 1
+                -0.34, -0.26, 0.0,    // vértice 2, triangulo 1
+                -0.34, -0.7, 0.0,     // vértice 3, triangulo 1
+
+                -0.7, -0.7, 0.0,
+                -0.7, 0, 0.0,     // vértice 1, triangulo 2
+                -0.34, -0.26, 0.0,     // vértice 2, triangulo 2
+
+                -0.7, 0, 0.0,
+                -0.34, -0.26, 0.0,
+                -0.34, 0, 0.0,
+
+                -0.7, 0, 0.0,
+                -0.34, 0, 0.0,
+                -0.34, 0.45, 0.0,
+
+                -0.34, -0.26, 0.0,
+                -0.34, -0.7, 0.0,
+                0.02, -0.7, 0.0,
+
+                -0.34, -0.26, 0.0,
+                0.02, -0.26, 0.0,
+                0.02, -0.7, 0.0,
+
+                0.02, -0.7, 0.0,
+                0.38, -0.7, 0,
+                0.38, -0.26, 0.0,
+
+                0.02, -0.7, 0.0,
+                0.38, -0.26, 0.0,
+                0.02, 0.24, 0,
+
+                0.38, -0.26, 0.0,
+                0.02, 0.24, 0,
+                0.38, 0.24, 0,
+
+                0.02, 0.24, 0,
+                0.38, 0.24, 0,
+                0.38, 0.69, 0,
+
+            ];
+
+            //buffer espacio de memoria en la gpu
+            trianglesVerticeBuffer = gl.createBuffer();                               // creo el buffer
+            //cree el recurso--> ahora activarlo
+            gl.bindBuffer(gl.ARRAY_BUFFER, trianglesVerticeBuffer);                   // activo el buffer
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);   // cargo los datos en el buffer 
+
+            //correspondencia en la cantidad de vertices 
+            // BUFFER DE COLORES   
+            var color = [
+                88 / 255, 223 / 255, 0,
+                88 / 255, 223 / 255, 0,
+                88 / 255, 223 / 255, 0,
+
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+
+                226 / 255, 186 / 255, 17 / 255,
+                226 / 255, 186 / 255, 17 / 255,
+                226 / 255, 186 / 255, 17 / 255,
+
+                1.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+
+                1.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+
+                88 / 255, 223 / 255, 0,
+                88 / 255, 223 / 255, 0,
+                88 / 255, 223 / 255, 0,
+
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+                247 / 255, 0, 255 / 255,
+
+                226 / 255, 186 / 255, 17 / 255,
+                226 / 255, 186 / 255, 17 / 255,
+                226 / 255, 186 / 255, 17 / 255,
+
+            ];
+
+            trianglesColorBuffer = gl.createBuffer(); //
+            gl.bindBuffer(gl.ARRAY_BUFFER, trianglesColorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(color), gl.STATIC_DRAW);
+        }
+        //vinculamos el programa ya compilado glProgram con los datos(el arreglo)
+        //la gpu consume los datos de los buffers y va dibujando los triangulos
+        //
+        function drawScene() {
+
+            vertexPositionAttribute = gl.getAttribLocation(glProgram, "aVertexPosition");
+            gl.enableVertexAttribArray(vertexPositionAttribute);
+            gl.bindBuffer(gl.ARRAY_BUFFER, trianglesVerticeBuffer);
+            gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+            vertexColorAttribute = gl.getAttribLocation(glProgram, "aVertexColor");
+            gl.enableVertexAttribArray(vertexColorAttribute);
+            gl.bindBuffer(gl.ARRAY_BUFFER, trianglesColorBuffer);
+            gl.vertexAttribPointer(vertexColorAttribute, 3, gl.FLOAT, false, 0, 0);
+            //cuantos vectores de tres coordenadas empiezo en el cero y consumo hasta el 6
+            // consume de los buffers la info para dibujar
+            gl.drawArrays(gl.TRIANGLES, 0, 30); //se consume 6 elemnentos y que los interprete como
+            //triangulos, los datos los toma de a tres                                
+        }
+        window.onload = initWebGL;
+    </script>
+</body>
+
+</html>
