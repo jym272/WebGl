@@ -53,8 +53,8 @@
             // Posicion de la esfera, cambio la escala del vector normal de forma localizada.
             // Con el vertex shader puedo hacer cualquier tipo de modificacion de las posiciones
             // realizamos una transformacion no lineal --> DEFORMACIONES.
+            // Una Deformacion 
             
-            // Una Deformacion
             position+=normal*(1.0+sin(uv.x*18.0*PI+time*20.0))*0.03; 
             // nuevoVector = normal.xyy
             /*
