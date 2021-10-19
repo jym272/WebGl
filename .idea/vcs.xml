@@ -4,6 +4,7 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/GrillaNxM" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/MapeoUv" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/SistemasGraficosTP1" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/jym272.github.io" vcs="Git" />
   </component>
 </project>

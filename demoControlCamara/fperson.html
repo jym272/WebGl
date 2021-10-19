@@ -68,8 +68,29 @@
         return group;
     }
 
+
+    //tener en cuenta:
+    // ->info de orientacion del violeta respecto del amarillo en coord polares y traducirlo a cartesianas
+    // ->para el LookAt con GlMatrix para la camara se necesita:
+    //      ->traducir la pos de violeta a coord de mundo(aca no se hace)
+    //      -> necesito las coord de los dos cubos en el mundo, con sus matrices multiplico por un vector
+    //      -> (0,0,0) y obtengo las coord del centro en el mundo.
+    //      -> Con lo anterior voy a LookAt mas un vector UP, y se obtiene la matriz de vista de la
+    //      -> camara de primera persona
+
+    // -> En violeta aca no nos interesa su orientacion
     var jqDomElement=$("#contenedor3d");
 
+    //Para calcular el LookAt y resolver la vista
+    //Cubo amarillo, la pos del cubo es la posicion de este en el mundo.
+
+    //Cubo violeta, su pos es relativo del cubo amaraillo, para obtener su pos en el mundo,
+    //en su clase objeto3D se agrega un metodo para obtenercoordMundo(vec){ donde vec=(0,0,0),
+    // (vec*MatrizModeladoCuboVioleta)}, y se obtiene las coord del centro del cubo violeta en el mundo
+
+    //Para mover con A S D W
+    //Necesito la pos del cubo amarillo, la pos del target (violeta), necesito un angulo de orientacion
+    //del personaje respecto del plano.(2 vectores y un angulo), el personaje no se mueve en y(vertical)
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 1000);
 
@@ -176,7 +197,8 @@
     $('body').mouseup(function(event){
 		isMouseDown = false;		
     });
-
+    //dercha y adelante, la direccion en la cual apunta el personaje, simplemente sumo en la posicion
+    // o resto
     $('body').on("keydown",function(event){
         //console.log(event);
         switch(event.key){
@@ -201,8 +223,7 @@
 
 
 
-     
-            case "q":
+            //rotacion del objeto 0.1 radianes
                 origin.rotation.y+=0.1;
             break; 
             case "e":
@@ -221,16 +242,19 @@
 
         adelante=new THREE.Vector3(0,0,0.1);
         derecha=new THREE.Vector3(0.1,0,0);
-
+        //cual es la direccion de la flecha azul, y roja en el plano
+        //Con 2 vectores en el plano los roto(con una matriz de rotacion) con la misma rotacion del personaje
+        //y les sumos a los vectores adelante o derecha
         var ang=origin.rotation.y;
         var m=new THREE.Matrix4();
         m.makeRotationY(ang);
 
         adelante.applyMatrix4(m);
         derecha.applyMatrix4(m);
-
+        //de esfericas a cartesianas, el punto ahora es de objetivo y no de origen
         target.position.set( radio * Math.sin(alfa) * Math.sin(beta), radio * Math.cos(beta) ,radio * Math.cos(alfa) * Math.sin(beta)  );		
-		sombra.position.set( radio * Math.sin(alfa) * Math.sin(beta), 0 ,radio * Math.cos(alfa) * Math.sin(beta)  );
+		//plano que esta debajo del target, donde esta el cubo violeta en el plano?
+        sombra.position.set( radio * Math.sin(alfa) * Math.sin(beta), 0 ,radio * Math.cos(alfa) * Math.sin(beta)  );
 
 
 
@@ -245,11 +269,11 @@
         renderer.render(scene, camera);
     };
 
-    
+
+    //del cubo violeta,
 
     function actualizarOrientacion()
     {
-
 
         var deltaX=0;
         if (previousClientX) deltaX=-(mouse.x - previousClientX);
@@ -260,6 +284,7 @@
         previousClientX = mouse.x;
         previousClientY = mouse.y;
 
+        //Lo uso para actualizar la posicion del target
         alfa = alfa + deltaX * factorVelocidad;
         beta = beta + deltaY * factorVelocidad;
 
@@ -272,18 +297,9 @@
 
         $('#valorAlfa').html(Math.floor(alfa*180/Math.PI));
         $('#valorBeta').html(Math.floor(beta*180/Math.PI));
-
-        
-        
-
-
     }
-
-
     render();
     
 </script>
-
-
 </body>
 </html>

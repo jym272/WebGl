@@ -53,7 +53,9 @@
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 1000);
-
+    //necesito origen, target (san variables) y el UP, la cual es una constante (z+ o y+)
+    //Con el mouse me desplaza en la superficie de una esfera
+    //Dato, multiplicando por 0 una matriz del objeto me da el origen de coordenadas de ese sistema en el mundo
     camera.position.set(-8,10,-8);
     camera.lookAt(new THREE.Vector3(0,0,0));
 
@@ -131,16 +133,19 @@
     var previousClientX = 0;
     var previousClientY = 0;
     var radio = 5;
+    //angulos de las coordenadas esfericas
     var alfa = 0;
     var beta = Math.PI/2;
     var factorVelocidad = 0.01;
 
-    var isMouseDown = false;
+    var isMouseDown = false; //esta apretado el botno del mous
     var actualEvent;
 
 	var mouse = {x: 0, y: 0};
 
-    $("#contenedor3d").mousemove(function(e){ 
+    // se puede hacer sin jquery para escuchar un evento de mouse
+    $("#contenedor3d").mousemove(function(e){
+        //me guardo la coord del mouse
 		mouse.x = e.clientX || e.pageX; 
 		mouse.y = e.clientY || e.pageY 
 	});
@@ -152,7 +157,7 @@
     $('body').mouseup(function(event){
 		isMouseDown = false;		
     });
-
+    //con este callback escucho al teclado
     $('body').on("keydown",function(event){
         console.log(event);
 
@@ -164,7 +169,8 @@
 
     var render = function () {
 
-
+        //cada vez se hace el render actualizo, con alfa y beta construyo las coordenadas cartesianas
+        //de esfericas a cartesianas
         origin.position.set( radio * Math.sin(alfa) * Math.sin(beta), radio * Math.cos(beta) ,radio * Math.cos(alfa) * Math.sin(beta)  );		
 		sombra.position.set( radio * Math.sin(alfa) * Math.sin(beta), 0 ,radio * Math.cos(alfa) * Math.sin(beta)  );
 
@@ -172,26 +178,28 @@
         requestAnimationFrame(render);
         renderer.render(scene, camera,false,false);
     };
-
+    //actualizo el cubo con alfa y beta
     function rotarCuboAzul()
     {
-        var deltaX=0;
+
+        var deltaX=0; //cuanto se movio el mouse, variacion
         var deltaY=0;
 
-
+        //variacion entre el ultimo cuadro y el anteultimo
         if (previousClientX) deltaX = mouse.x - previousClientX;
         if (previousClientY) deltaY = mouse.y - previousClientY;
 
         previousClientX = mouse.x;
         previousClientY = mouse.y;
-
+        //mapeo la variacion
         alfa = alfa + deltaX * factorVelocidad;
         beta = beta + deltaY * factorVelocidad;
 
+        //limites para el angulo de latitud, no pasa mas alla del polo sur, norte
 		if (beta<0) beta=0;
 		if (beta>Math.PI) beta=Math.PI;
 
-        
+        //imprimo en pantalla
         $('#valorDeltaX').html(deltaX);
         $('#valorDeltaY').html(deltaY);
 

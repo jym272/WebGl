@@ -7,3 +7,6 @@
 [submodule "MapeoUv"]
 	path = MapeoUv
 	url = https://github.com/jym272/MapeoUv.git
+[submodule "SistemasGraficosTP1"]
+	path = SistemasGraficosTP1
+	url = https://github.com/jym272/SistemasGraficosTP1.git
